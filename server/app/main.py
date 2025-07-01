@@ -1,32 +1,31 @@
 import uvicorn
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
+from .config.settings import settings
+from .middleware import register_middleware
+from app.api.monitoring import monitoring_router
 
-origins = [r"https?:\/\/localhost:\d{4}"]
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
+
 app = FastAPI(
-    generate_unique_id_function=custom_generate_unique_id
+    title=settings.PROJECT_NAME,
+    version=settings.API_DEFAULT_VERSION,
+    openapi_url=f"{settings.api_base_path}/openapi.json",
+    description="wedding table seating chart",
+    generate_unique_id_function=custom_generate_unique_id,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins, 
-    allow_methods=["*"], 
-    allow_headers=["*"]
-)
-
-@app.get("/ping")
-def ping():
-    return {"message": "pong"}
+register_middleware(app)
 
 
 def main():
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
 
+
+app.include_router(monitoring_router, prefix=settings.api_base_path)
 
 if __name__ == "__main__":
     main()

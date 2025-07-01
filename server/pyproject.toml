@@ -9,26 +9,22 @@ dependencies = [
     "pydantic>2.0",
     "alembic<2.0.0,>=1.12.1",
     "httpx<1.0.0,>=0.25.1",
-    "psycopg[binary]<4.0.0,>=3.1.13",
     "sqlmodel<1.0.0,>=0.0.21",
     "pydantic-settings<3.0.0,>=2.2.1",
     "python-dotenv (>=1.1.1,<2.0.0)",
+    "firebase-admin (>=6.9.0,<7.0.0)",
+    "asyncpg (>=0.30.0,<0.31.0)",
 ]
 
 [project.scripts]
-start-app = "app.run:main"
-
-[tool.uv]
-dev-dependencies = [
-    "mypy<2.0.0,>=1.8.0",
-    "ruff<1.0.0,>=0.2.2",
-    "pre-commit<4.0.0,>=3.6.2",
-    "types-passlib<2.0.0.0,>=1.7.7.20240106"
-]
-
+start-app = "app.main:main"
 
 [tool.poetry.group.dev.dependencies]
 uvicorn = "^0.34.3"
+mypy = "^1.8.0"
+ruff = "^0.2.2"
+pre-commit = "^3.6.2"
+types-passlib = "^1.7.7.20240106"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
