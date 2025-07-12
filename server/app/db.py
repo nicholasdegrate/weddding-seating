@@ -11,11 +11,10 @@ async def init_db() -> None:
     async with async_engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    Session = async_sessionmaker(
+    session_ = async_sessionmaker(
         bind=async_engine, class_=AsyncSession, expire_on_commit=False
     )
 
-    async with Session() as session:
+    async with session_() as session:
         yield session

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api"
     API_DEFAULT_VERSION: str = "v1"
 
+    ENVIRONMENT: str | None = None
     POSTGRES_SERVER: str | None = None
     POSTGRES_PORT: int | None = None
     POSTGRES_DB: str | None = None
@@ -31,8 +32,7 @@ class Settings(BaseSettings):
 
     @property
     def db_url(self) -> str:
-        # return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 
 def init_firebase_admin_app():
@@ -48,6 +48,4 @@ def init_firebase_admin_app():
 
     return default_app
 
-
-firebase_app = init_firebase_admin_app()
 settings = Settings()
