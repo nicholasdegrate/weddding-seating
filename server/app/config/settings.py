@@ -1,4 +1,4 @@
-from firebase_admin import credentials, initialize_app, App, _apps  # type: ignore
+from firebase_admin import credentials, initialize_app, App, _apps
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import pathlib
 
@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str | None = None
     POSTGRES_USER: str | None = None
     POSTGRES_PASSWORD: str | None = None
+    FIREBASE_WEB_API_KEY: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
@@ -48,4 +49,6 @@ def init_firebase_admin_app():
 
     return default_app
 
+
+firebase = init_firebase_admin_app()
 settings = Settings()

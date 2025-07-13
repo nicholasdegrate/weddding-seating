@@ -1,16 +1,16 @@
 from fastapi import HTTPException, status, Depends
 from fastapi.concurrency import run_in_threadpool
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from firebase_admin import auth, _auth_utils,get_app
+from firebase_admin import auth
 import google.auth.exceptions
 from pydantic import EmailStr
-from sqlmodel import SQLModel, select
-from typing import Dict, Any
-
+from sqlmodel import SQLModel
+from typing import Dict, Any, cast
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-
 from app.db import get_session
 from app.schemas.schema import User
+from sqlmodel.sql.expression import SelectOfScalar
 
 
 class FirebaseClaims(SQLModel):
@@ -21,8 +21,6 @@ class FirebaseClaims(SQLModel):
     exp: int
     firebase: Dict[str, Any]
 
-    class Config:
-        orm_mode = True
 
 async def decode_firebase_token(id_token: str) -> FirebaseClaims:
     try:
@@ -31,31 +29,41 @@ async def decode_firebase_token(id_token: str) -> FirebaseClaims:
             id_token,
             check_revoked=True,
         )
-    except _auth_utils.RevokedIdTokenError:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
-    except _auth_utils.ExpiredIdTokenError:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token expired")
     except google.auth.exceptions.TransportError:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Auth service unreachable")
-    except Exception:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "Auth service unreachable"
+        )
+    except Exception as e:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, e.__str__())
 
     return FirebaseClaims(**decoded)
 
+
 auth_scheme = HTTPBearer(auto_error=False)
 
-async def get_firebase_claims(creds: HTTPAuthorizationCredentials | None = Depends(auth_scheme)) -> FirebaseClaims:
+
+async def get_firebase_claims(
+    creds: HTTPAuthorizationCredentials | None = Depends(auth_scheme),
+) -> FirebaseClaims:
     if creds is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing Authorization header", headers={"WWW-Authenticate": "Bearer"})
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            "Missing Authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return await decode_firebase_token(creds.credentials)
+
 
 async def get_current_user(
     claims: FirebaseClaims = Depends(get_firebase_claims),
     session: AsyncSession = Depends(get_session),
-) -> User:
-    result = await session.exec(select(User).where(User.firebase_uid == claims.uid, User.email == claims.email))
+) -> User | None:
+    stmt = (
+        select(User)
+        .where(User.firebase_uid == claims.uid)
+        .where(User.email == claims.email)
+    )
+
+    stmt_scalar: SelectOfScalar[User] = cast(SelectOfScalar[User], stmt)
+    result = await session.exec(stmt_scalar)
     return result.one_or_none()
-
-
-
-

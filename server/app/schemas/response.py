@@ -1,9 +1,8 @@
 from pydantic import BaseModel, Field
+import uuid
+
 
 class UserResponse(BaseModel):
-    id: str
-    email: str = Field(..., example="john.doe@example.com")
-    full_name: str = Field(..., example="john doe")
-
-    class Config:
-        orm_mode = True
+    id: uuid.UUID
+    email: str
+    full_name: str
