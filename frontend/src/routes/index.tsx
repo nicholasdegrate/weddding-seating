@@ -33,6 +33,14 @@ function App() {
         >
           Learn TanStack
         </a>
+        <div className="mt-8">
+          <a 
+            href="/seat-map-editor"
+            className="block text-[#61dafb] hover:underline"
+          >
+            Go to Seat Map Editor
+          </a>
+        </div>
       </header>
     </div>
   )
