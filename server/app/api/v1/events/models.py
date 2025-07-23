@@ -7,7 +7,8 @@ from sqlmodel import select, and_
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.schemas.request import CreateEventRequest, UpdateEventRequest
-from app.schemas.schema import Event, UserEventLink
+from app.schemas.response import TableResponse
+from app.schemas.schema import Event, UserEventLink, Table
 
 
 async def get_all_events_by_user(user_id: UUID, session: AsyncSession):
@@ -122,6 +123,41 @@ async def update_event_by_user(
         await session.refresh(event)
 
         return event
+    except Exception:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected error occurred while creating event.",
+        )
+
+
+async def get_tables_by_event(
+    event_id, user_id: uuid.UUID, session: AsyncSession
+) -> TableResponse:
+    try:
+        event = await session.get(Event, event_id)
+
+        if not event:
+            HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Current Event can not be found",
+            )
+
+        stmt = select(UserEventLink).where(
+            UserEventLink.event_id == event_id, UserEventLink.user_id == user_id
+        )
+
+        result = await session.exec(stmt)
+        is_valid_linked = result.first()
+        if not is_valid_linked:
+            HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized user"
+            )
+
+        stmt_table = select(Table).where(Table.event_id == event_id)
+        table_result = await session.exec(stmt_table)
+
+        return table_result.all()
     except Exception:
         await session.rollback()
         raise HTTPException(

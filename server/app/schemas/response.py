@@ -14,3 +14,13 @@ class EventResponse(BaseModel):
     id: uuid.UUID
     title: str
     created_at: datetime
+
+
+class TableResponse(BaseModel):
+    id: str
+    x: int
+    y: int
+    height: int
+    width: int
+    shape: str
+    name: str
