@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -133,7 +134,7 @@ async def update_event_by_user(
 
 async def get_tables_by_event(
     event_id, user_id: uuid.UUID, session: AsyncSession
-) -> TableResponse:
+) -> List[TableResponse]:
     try:
         event = await session.get(Event, event_id)
 

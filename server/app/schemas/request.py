@@ -15,3 +15,14 @@ class CreateEventRequest(BaseModel):
 class UpdateEventRequest(BaseModel):
     id: uuid.UUID
     title: str
+
+
+class CreateTableRequest(BaseModel):
+    x: int
+    y: int
+    height: int
+    width: int
+    title: str
+    shape: str
+    seats: int
+    event_id: uuid.UUID
